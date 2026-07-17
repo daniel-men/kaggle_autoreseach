@@ -126,7 +126,7 @@ def call_dcode(slug: str, prompt: str, context: str, stream: bool = False):
 def implement_metric(slug: str, metric: str):
     prompt = (
         f"Implement the metric {metric} in python. "
-        "It should take two arguments, y_pred and y_test, and return a single numeric value. "
+        "It should take two arguments, y_true and y_pred, and return a single numeric value. "
         "It is okay to import the metric from a library if it exists. "
         "Return the code only, wrapped in a python code block, and label the file as inferred_metrics.py."
     )
@@ -174,8 +174,8 @@ def ask_for_code(slug: str, context: str, stream: bool = False):
         - Do not import or compute any metrics on your own.
         - Implement a predict() function with no arguments that runs the full pipeline:
             load data, split into train/test, train the model, and generate test-set predictions.
-        - The predict() function must return exactly two objects: y_pred and y_test.
-        - y_pred must be the model predictions on the test set and y_test must be the corresponding
+        - The predict() function must return exactly two objects: y_true and y_pred.
+        - y_pred must be the model predictions on the test set and y_true must be the corresponding
           ground truth values from the test set.
         - Do not return additional values, dictionaries, or printed output.
         """,
@@ -235,7 +235,6 @@ def implement_preprocessing(slug: str, context: str, stream: bool = False):
           modeling, but keep the target column.
         - Do not perform feature engineering beyond cleaning, imputation, and encoding.
         - Implement a preprocess() function that performs these steps. It takes as only input the path to csv and returns the preprocessed dataframe.
-             Save your code in solution/preprocess.py.
         - Implement the actual code and not a scaffold.
         - Briefly report which columns were dropped, imputed, or encoded, and confirm
           that data/preprocessed_data.csv was written successfully.
