@@ -61,5 +61,13 @@ def call_dcode(prompt: str, context: str, provider: str = "openai", model: str =
         tools=[PythonREPLTool],
         
     )
-
-    return agent.invoke(prompt, context=context)
+    input_state = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                    "context": context,
+                }
+            ]
+        }
+    return agent.invoke(input_state)
