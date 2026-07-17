@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from src.dcode import implement_metric
@@ -88,3 +89,46 @@ def f1_score(y_true, y_pred):
     content = metrics_path.read_text(encoding="utf-8")
     assert "def accuracy" in content
     assert "def f1_score" in content
+
+def test_slug_from_url_handles_kaggle_urls_and_plain_slugs():
+    from src.utils import slug_from_url
+
+    assert slug_from_url("https://www.kaggle.com/competitions/titanic") == "titanic"
+    assert slug_from_url("https://www.kaggle.com/competitions/home-data-for-ml-course/?tab=data") == "home-data-for-ml-course"
+    assert slug_from_url("  plain-slug/  ") == "plain-slug"
+
+
+def test_load_dotenv_parses_values_without_overriding_by_default(tmp_path, monkeypatch):
+    from src.utils import load_dotenv
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "# ignored\n"
+        "EXISTING=from-file\n"
+        "QUOTED=\"hello world\"\n"
+        "SINGLE='hello again'\n"
+        "INLINE=value # comment\n"
+        "NO_EQUALS\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EXISTING", "from-env")
+
+    load_dotenv(str(env_file))
+
+    assert os.environ["EXISTING"] == "from-env"
+    assert os.environ["QUOTED"] == "hello world"
+    assert os.environ["SINGLE"] == "hello again"
+    assert os.environ["INLINE"] == "value"
+
+
+def test_load_dotenv_can_override_existing_values(tmp_path, monkeypatch):
+    from src.utils import load_dotenv
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("EXISTING=from-file\n", encoding="utf-8")
+    monkeypatch.setenv("EXISTING", "from-env")
+
+    load_dotenv(str(env_file), override=True)
+
+    assert os.environ["EXISTING"] == "from-file"
+
