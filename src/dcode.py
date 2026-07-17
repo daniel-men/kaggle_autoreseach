@@ -20,7 +20,7 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     AIMessage = ToolMessage = None
 
-from src.utils import get_file_content
+from src.utils import get_file_content, write_python_code_to_file
 
 
 def print_stream_event(event: dict) -> None:
@@ -130,7 +130,20 @@ def implement_metric(slug: str, metric: str):
         "It is okay to import the metric from a library if it exists. "
         "Return the code only, wrapped in a python code block, and label the file as inferred_metrics.py."
     )
-    return call_dcode(slug=slug, prompt=prompt, context="", stream=False)
+    code_result = call_dcode(slug=slug, prompt=prompt, context="", stream=False)
+    content = getattr(code_result, "content", code_result)
+    if isinstance(content, dict):
+        content = content.get("content") or content.get("text") or str(content)
+    else:
+        content = str(content)
+
+    write_python_code_to_file(
+        content=content,
+        filename="inferred_metrics.py",
+        slug=slug,
+        append=True,
+    )
+    return code_result
    
 
 def ask_for_code(slug: str, context: str, stream: bool = False):
