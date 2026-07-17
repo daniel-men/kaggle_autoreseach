@@ -32,10 +32,16 @@ class MetricImplementationState(TypedDict):
 def normalize_metric_name_with_llm(metric_name: str):
     normalized_name = None
     while normalized_name is None:
-        llm = get_llm(provider="ollama", model="hf.co/unsloth/Qwen3.5-9B-GGUF:Q4_K_M", temperature=0.)
-        prompt = f"Normalize the following metric name: {metric_name} to a function name. " \
-        "It should only contain lowercase letters and underscores. " \
-        "Return only the normalized name."
+        llm = get_llm(
+            provider="ollama",
+            model="hf.co/unsloth/Qwen3.5-9B-GGUF:Q4_K_M",
+            temperature=0.0,
+        )
+        prompt = (
+            f"Normalize the following metric name: {metric_name} to a function name. "
+            "It should only contain lowercase letters and underscores. "
+            "Return only the normalized name."
+        )
 
         model_output = llm.invoke(prompt)
         normalized_name = model_output.content
@@ -43,50 +49,34 @@ def normalize_metric_name_with_llm(metric_name: str):
     return normalized_name
 
 
-
 def select_metric(state: MetricImplementationState) -> dict:
-    
-    
-    print(
-        
-        f"Implementing {state['metric_names'][state['metric_index']]}"
-    )
-    return {
-        "attempt": 0
-        
-    }
+
+    print(f"Implementing {state['metric_names'][state['metric_index']]}")
+    return {"attempt": 0}
+
 
 def normalize_metric_name(state: MetricImplementationState) -> dict:
-    normalized_name = normalize_metric_name_with_llm(state["metric_names"][state['metric_index']])
-    state["normalized_metric_names"].append(normalized_name)
-    return {
-        "normalized_metric_names": state["normalized_metric_names"]
-    }
+    normalized_name = normalize_metric_name_with_llm(
+        state["metric_names"][state["metric_index"]]
+    )
+    return {"normalized_metric_names": state["normalized_metric_names"] + [normalized_name]}
 
 
 def implement_metric(state: MetricImplementationState) -> dict:
-    code_result = _implement_metric(slug=state["slug"], metric=state["normalized_metric_names"][state['metric_index']])
+    code_result = _implement_metric(
+        slug=state["slug"],
+        metric=state["normalized_metric_names"][state["metric_index"]],
+    )
     content = getattr(code_result, "content", code_result)
     if isinstance(content, dict):
         content = content.get("content") or content.get("text") or str(content)
     else:
         content = str(content)
 
-    write_python_code_to_file(content=content, filename="inferred_metrics.py", slug=state["slug"], append=True)
+    write_python_code_to_file(
+        content=content, filename="inferred_metrics.py", slug=state["slug"], append=True
+    )
     return {"attempt": 0}
-    
-    return {"code_result": code_result, "attempt": 0}
-
-
-"""def write_code(state: MetricImplementationState) -> dict:
-    content = getattr(state["code_result"], "content", state["code_result"])
-    if isinstance(content, dict):
-        content = content.get("content") or content.get("text") or str(content)
-    else:
-        content = str(content)
-
-    write_python_code_to_file(content=content, filename="inferred_metrics.py", slug=state["slug"])
-    return {}"""
 
 
 def load_metric_module(slug: str):
@@ -96,8 +86,9 @@ def load_metric_module(slug: str):
     spec.loader.exec_module(module)
     return module
 
+
 def test_import(state: MetricImplementationState) -> dict:
-    normalized_name = state["normalized_metric_names"][state['metric_index']]
+    normalized_name = state["normalized_metric_names"][state["metric_index"]]
     predict_result = {}
     try:
         module = load_metric_module(slug=state["slug"])
@@ -111,39 +102,54 @@ def test_import(state: MetricImplementationState) -> dict:
     predict_result["feedback"] = None
     return {"predict_result": predict_result}
 
+
 def repair_code(state: MetricImplementationState) -> dict:
     attempt = state["attempt"] + 1
     if state["feedback"]:
-        print(f"--- Generating code (attempt {attempt}/{state['max_attempts']}, retry after failure) ---")
+        print(
+            f"--- Generating code (attempt {attempt}/{state['max_attempts']}, retry after failure) ---"
+        )
     else:
         print(f"--- Generating code (attempt {attempt}/{state['max_attempts']}) ---")
 
     path = f"{os.getcwd()}/runs/{state['slug']}/solution/inferred_metrics.py"
-    
-    code_result = _repair_code(slug=state["slug"], file_path=path, traceback=state["feedback"])
+    metric_name = state["metric_names"][state["metric_index"]]
+    normalized_name = state["normalized_metric_names"][state["metric_index"]]
+    context = (
+        f"Metric to implement: {metric_name} "
+        f"(function name: {normalized_name}, arguments: y_pred, y_test)"
+    )
+
+    code_result = _repair_code(
+        slug=state["slug"], file_path=path, traceback=state["feedback"], context=context
+    )
     content = getattr(code_result, "content", code_result)
     if isinstance(content, dict):
         content = content.get("content") or content.get("text") or str(content)
     else:
         content = str(content)
 
-    write_python_code_to_file(content=content, filename="inferred_metrics.py", slug=state["slug"], append=False)
-    
-    return {"code_result": code_result, "attempt": attempt} 
+    write_python_code_to_file(
+        content=content,
+        filename="inferred_metrics.py",
+        slug=state["slug"],
+        append=False,
+    )
+
+    return {"code_result": code_result, "attempt": attempt}
+
 
 def increase_index(state: MetricImplementationState):
-    return {
-        "metric_index": state["metric_index"] + 1 
-    }
+    return {"metric_index": state["metric_index"] + 1}
+
 
 def route_after_import(state: MetricImplementationState) -> str:
     if state["predict_result"]["success"] or state["attempt"] >= state["max_attempts"]:
         if state["metric_index"] == len(state["metric_names"]) - 1:
             return END
         return "increase_index"
-   
-    return "repair_code"
 
+    return "repair_code"
 
 
 def build_graph():
@@ -151,40 +157,42 @@ def build_graph():
     graph.add_node("select_metric", select_metric)
     graph.add_node("normalize_metric_name", normalize_metric_name)
     graph.add_node("implement_metric", implement_metric)
-    #graph.add_node("write_code", write_code)
     graph.add_node("test_import", test_import)
     graph.add_node("repair_code", repair_code)
     graph.add_node("increase_index", increase_index)
-    
+
     graph.set_entry_point("select_metric")
     graph.add_edge("select_metric", "normalize_metric_name")
     graph.add_edge("normalize_metric_name", "implement_metric")
     graph.add_edge("implement_metric", "test_import")
     graph.add_conditional_edges(
-        "test_import", route_after_import, {
-            "repair_code": "repair_code",
-            "increase_index": "increase_index",
-            END: END
-        }
+        "test_import",
+        route_after_import,
+        {"repair_code": "repair_code", "increase_index": "increase_index", END: END},
     )
     graph.add_edge("increase_index", "select_metric")
     graph.add_edge("repair_code", "test_import")
 
     return graph.compile()
 
+
 def implement_metrics_from_research_plan(slug: str, plan: MLResearchPlan):
     metric_names = [plan.primary_metric] + plan.secondary_metrics
 
     graph = build_graph()
-    graph.get_graph().draw_mermaid_png(output_file_path=f"{os.getcwd()}/runs/{slug}/metrics_graph.png")
+    graph.get_graph().draw_mermaid_png(
+        output_file_path=f"{os.getcwd()}/runs/{slug}/metrics_graph.png"
+    )
 
-    final_state = graph.invoke({
+    final_state = graph.invoke(
+        {
             "slug": slug,
             "metric_index": 0,
             "metric_names": metric_names,
             "normalized_metric_names": [],
             "research_plan": plan,
-            "max_attempts": MAX_PREDICT_ATTEMPTS
-        })
+            "max_attempts": MAX_PREDICT_ATTEMPTS,
+        }
+    )
     normalized_metric_names = final_state["normalized_metric_names"]
     return normalized_metric_names[0], normalized_metric_names[1:]

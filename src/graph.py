@@ -63,8 +63,9 @@ def repair_code(state: ResearchIterationState) -> dict:
         print(f"--- Generating code (attempt {attempt}/{state['max_attempts']}) ---")
 
     solution_path = f"{os.getcwd()}/runs/{state['slug']}/solution/solution.py"
-    
-    code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"])
+    context = state["experiment_plan"].model_dump_json()
+
+    code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"], context=context)
     print("Code repair done.")
     return {"code_result": code_result, "attempt": attempt} 
 
@@ -113,7 +114,7 @@ def run_predict_node(state: ResearchIterationState) -> dict:
     if predict_result["success"]:
         
         try:
-            y_pred, y_test = predict_result["result"]
+            y_true, y_pred = predict_result["result"]
         except Exception as e:
             predict_result["success"] = False
             feedback = str(e)
@@ -125,7 +126,7 @@ def run_predict_node(state: ResearchIterationState) -> dict:
         for metric_name, metric in metrics.items():
             
             try:
-                result = metric(y_test, y_pred)
+                result = metric(y_true, y_pred)
             except Exception as e:
                 print(e)
                 result = None

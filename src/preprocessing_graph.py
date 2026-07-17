@@ -66,7 +66,8 @@ def repair_code(state: PreprocessingState) -> dict:
         print(f"--- Generating code (attempt {attempt}/{state['max_attempts']}) ---")
 
     solution_path = f"{os.getcwd()}/runs/{state['slug']}/solution/preprocessing.py"
-    code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"])
+    context = state["preprocessing_plan"].model_dump_json()
+    code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"], context=context)
     print("Code repair done.")
     return {"code_result": code_result, "attempt": attempt}
 
