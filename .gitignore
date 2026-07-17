@@ -1,0 +1,32 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration and secrets
+.env
+.env.*
+*.key
+*.pem
+
+# IDE/editor state
+.vscode/
+.idea/
+.claude/
+
+# Kaggle/autoresearch local artifacts
+runs/
+data/
+catboost_info/
