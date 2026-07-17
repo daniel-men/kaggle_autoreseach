@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from src.dcode import implement_metric
+from src.llm_calls import implement_metric
 from src.utils import write_python_code_to_file
 
 

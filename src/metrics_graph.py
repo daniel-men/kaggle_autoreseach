@@ -7,11 +7,11 @@ from typing import List, Optional, TypedDict
 
 from langgraph.graph import StateGraph, END
 
-from src.dcode import repair_code as _repair_code
+from src.llm_calls import repair_code as _repair_code
 from src.llms import get_llm
 from src.schemas.MLResearchPlan import MLResearchPlan
 from src.utils import write_python_code_to_file
-from src.dcode import implement_metric as _implement_metric
+from src.llm_calls import implement_metric as _implement_metric
 
 MAX_PREDICT_ATTEMPTS = 10
 

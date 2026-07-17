@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import zipfile
-from src.utils import run_cmd, slug_from_url
+from src.utils import run_cmd
 
 
 def has_local_data(data_dir: Path) -> bool:

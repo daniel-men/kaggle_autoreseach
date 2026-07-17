@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.llms import get_llm
+from src.prompts import DOCS_POSTPROCESSING_PROMPT
 from src.utils import slug_from_url, _workspace_for_challenge
 from deepagents import create_deep_agent
 
@@ -556,25 +558,10 @@ def _postprocess_combined_docs_with_llm(
         )
         return
 
-    prompt = (
-        "Clean the following rendered Kaggle documentation into concise Markdown for this competition.\n\n"
-        "Keep:\n"
-        "- The task/challenge objective.\n"
-        "- The target and what must be predicted.\n"
-        "- Evaluation metric and submission file format when present.\n"
-        "- Dataset description, file descriptions, data dictionary, and variable notes.\n\n"
-        "Remove anything unrelated to the task or data description, including website navigation, "
-        "duplicate text, render errors, sharing/sidebar/footer text, and generic Kaggle UI content.\n\n"
-        f"Competition slug: {artifact.get('competition_slug')}\n"
-        f"Competition URL: {artifact.get('url')}\n\n"
-        "Rendered documentation:\n"
-        f"{raw_text}"
-    )
+    prompt = DOCS_POSTPROCESSING_PROMPT(artifact=artifact, raw_text=raw_text)
 
     agent = create_deep_agent(
-        model=ChatOllama(
-            model="qwen2.5:7b",
-        ),
+        model=get_llm(provider="ollama", model="hf.co/unsloth/Qwen3.5-9B-GGUF:Q4_K_M"),
         system_prompt=COMBINED_DOCS_CLEANUP_SYSTEM,
     )
 

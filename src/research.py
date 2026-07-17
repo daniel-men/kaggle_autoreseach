@@ -42,6 +42,7 @@ from langchain_core.tools import tool
 
 
 from src.llms import get_llm
+from src.prompts import RESEARCH_SYSTEM_PROMPT
 from src.schemas.MLResearchPlan import MLResearchPlan
 
 
@@ -219,31 +220,7 @@ def inspect_sample_rows(csv_filename: str, n_rows: int = 5) -> list[dict]:
 # The prompt makes the agent behave like an ML research lead.
 # The key instruction: produce a research plan, not code or training.
 
-SYSTEM_PROMPT = f"""
-You are a senior machine learning research lead.
 
-Your job is to propose an initial research plan for an ML task.
-
-You have access to tools that can:
-- read the task Markdown
-- inspect the CSV schema
-- inspect a likely target distribution
-- inspect numeric summaries
-- inspect a small row sample
-- create a structured output.
-
-Important rules:
-1. Do not train models.
-2. Do not write code unless explicitly asked.
-3. Do not assume the target column without checking the task description and CSV schema.
-4. Always inspect the task Markdown first.
-5. Always inspect the CSV schema before proposing the plan.
-6. If a likely target column exists, inspect its distribution.
-7. Identify leakage risks, split strategy, baseline models, metrics, and first experiments.
-8. Prefer practical ML planning over generic advice.
-9. If the task is ambiguous, state assumptions and list open questions.
-10. Write your findings in the structured output.
-"""
 
 
 # ---------------------------------------------------------------------
@@ -273,7 +250,7 @@ def create_research_agent():
             inspect_numeric_summary,
             inspect_sample_rows,
         ],
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=RESEARCH_SYSTEM_PROMPT,
         response_format=MLResearchPlan,
         backend=FilesystemBackend(),
     )
