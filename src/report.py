@@ -47,18 +47,6 @@ def write_markdown_report(
     return report_path
 
 
-def generate_report(
-    state: "ResearchIterationState", output_path: str | Path | None = None
-) -> Path:
-    """Backward-friendly alias for callers that expect a generate function."""
-    return write_markdown_report(state, output_path)
-
-
-def create_report(
-    state: "ResearchIterationState", output_path: str | Path | None = None
-) -> Path:
-    """Backward-friendly alias for callers that expect a create function."""
-    return write_markdown_report(state, output_path)
 
 
 def _default_report_path(slug: str) -> Path:
