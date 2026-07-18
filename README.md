@@ -11,7 +11,7 @@ An agentic pipeline that takes a Kaggle competition URL and automatically:
    [src/preprocessing_graph.py](src/preprocessing_graph.py), [src/metrics_graph.py](src/metrics_graph.py)
 4. Implements and iterates on experiments from the plan, using an LLM coding
    agent that repairs its own code on failure —
-   [src/graph.py](src/graph.py), [src/dcode.py](src/dcode.py), [src/runner.py](src/runner.py)
+   [src/graph.py](src/graph.py), [src/llm_calls.py](src/llm_calls.py), [src/runner.py](src/runner.py)
 5. Writes a Markdown research report — [src/report.py](src/report.py)
 
 All outputs for a given competition are written under `runs/<competition-slug>/`
@@ -42,11 +42,6 @@ All outputs for a given competition are written under `runs/<competition-slug>/`
 2. Install the project (editable install, including test dependencies):
    ```bash
    pip install -e ".[dev]"
-   ```
-   The `dcode` extra pulls in the optional CLI coding-agent backend
-   (`deepagents-code`, `langchain-experimental`):
-   ```bash
-   pip install -e ".[dcode]"
    ```
 3. Configure credentials:
    ```bash
@@ -84,10 +79,12 @@ Results appear under `runs/<slug>/`:
 pytest
 ```
 
-The test suite only exercises the parts of the codebase with no heavy
-external dependencies (file/code generation utilities, the experiment
-runner, and competition data handling), so it does not require Ollama, a
-Kaggle token, or Chrome to be installed.
+The test suite exercises file/code generation utilities, the experiment
+runner, and competition data handling with the LLM/network calls mocked
+out, so it does not require Ollama, a Kaggle token, or Chrome to be
+configured — it does still need the full dependency set installed
+(`pip install -e ".[dev]"`), since some modules under test import
+`langchain-experimental`/`deepagents-code` unconditionally.
 
 ## Project layout
 
@@ -100,7 +97,8 @@ src/
   graph.py                # experiment iteration loop
   preprocessing_graph.py  # preprocessing pipeline generation
   metrics_graph.py        # metric inference/implementation
-  dcode.py                # LLM coding agent (implements/repairs solution code)
+  llm_calls.py            # LLM coding agent calls (implements/repairs solution code)
+  prompts.py              # prompt templates used by llm_calls.py / research.py
   runner.py               # sandboxed execution of generated code
   report.py               # Markdown report generation
   llms.py                 # LLM provider wiring (Ollama/OpenAI-compatible/Anthropic)

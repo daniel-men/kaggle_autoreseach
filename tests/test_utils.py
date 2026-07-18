@@ -46,7 +46,7 @@ def accuracy(y_true, y_pred):
 ```
 """
 
-    monkeypatch.setattr("src.dcode.call_dcode", fake_call_dcode)
+    monkeypatch.setattr("src.llm_calls.call_dcode", fake_call_dcode)
 
     implement_metric(slug="demo", metric="accuracy")
 
@@ -80,7 +80,7 @@ def f1_score(y_true, y_pred):
     def fake_call_dcode(slug, prompt, context, stream=False):
         return next(responses)
 
-    monkeypatch.setattr("src.dcode.call_dcode", fake_call_dcode)
+    monkeypatch.setattr("src.llm_calls.call_dcode", fake_call_dcode)
 
     implement_metric(slug="demo", metric="accuracy")
     implement_metric(slug="demo", metric="f1_score")
