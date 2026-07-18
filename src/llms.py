@@ -20,7 +20,7 @@ def get_llm(provider: str, model: str, temperature: float = 0.):
         llm =   ChatOpenAI(
             model=model,
             temperature=temperature,
-            base_url="http://localhost:8080/v1",
+            base_url="http://localhost:11434/v1",
             api_key="not-needed"
         )
     else:
