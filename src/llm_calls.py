@@ -52,10 +52,8 @@ def print_stream_event(event: dict) -> None:
 def implement_metric(slug: str, metric: str):
 
     code_result = call_dcode(
-        slug=slug,
         prompt=IMPLEMENT_METRIC_PROMPT(metric=metric),
         context="",
-        stream=False,
     )
     content = getattr(code_result, "content", code_result)
     if isinstance(content, dict):
@@ -74,10 +72,8 @@ def implement_metric(slug: str, metric: str):
 
 def ask_for_code(slug: str, context: str, stream: bool = False):
     return call_dcode(
-        slug=slug,
         prompt=EXPERIMENT_IMPLEMENTATION_PROMPT(slug=slug),
         context=context,
-        stream=stream,
     )
 
 
@@ -87,12 +83,10 @@ def repair_code(
     current_code = get_file_content(path=file_path)
 
     return call_dcode(
-        slug=slug,
         prompt=REPAIR_CODE_PROMPT(
             file_path=file_path, current_code=current_code, traceback=traceback
         ),
         context=context,
-        stream=stream,
     )
 
 
