@@ -122,7 +122,7 @@ def repair_code(state: MetricImplementationState) -> dict:
     normalized_name = state["normalized_metric_names"][state["metric_index"]]
     context = (
         f"Metric to implement: {metric_name} "
-        f"(function name: {normalized_name}, arguments: y_pred, y_test)"
+        f"(function name: {normalized_name}, arguments: y_true, y_pred)"
     )
 
     code_result = _repair_code(

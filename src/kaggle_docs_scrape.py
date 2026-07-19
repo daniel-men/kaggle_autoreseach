@@ -576,7 +576,7 @@ def _postprocess_combined_docs_with_llm(
                 ]
             }
         )
-        response = response["messages"][1].content
+        response = response["messages"][-1].content
     except Exception as exc:
         artifact["combined_text_cleanup_error"] = (
             "LLM cleanup failed; leaving combined.md unmodified. "
