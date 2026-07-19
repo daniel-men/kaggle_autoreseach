@@ -36,7 +36,7 @@ def accuracy(y_true, y_pred):
 def test_implement_metric_writes_metrics_file(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
-    def fake_call_dcode(prompt, context):
+    def fake_call_dcode(prompt, context, system_prompt=None):
         return """
 ```python
 # FILE: inferred_metrics.py
@@ -77,7 +77,7 @@ def f1_score(y_true, y_pred):
 """,
     ])
 
-    def fake_call_dcode(prompt, context):
+    def fake_call_dcode(prompt, context, system_prompt=None):
         return next(responses)
 
     monkeypatch.setattr("src.llm_calls.call_dcode", fake_call_dcode)

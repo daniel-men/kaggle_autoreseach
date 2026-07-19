@@ -1,9 +1,4 @@
-try:
-    from langchain_core.messages import AIMessage, ToolMessage
-except ImportError:  # pragma: no cover - optional dependency
-    AIMessage = ToolMessage = None
-
-from src.llms import call_dcode
+from src.llms import call_dcode, call_llm
 from src.prompts import (
     EXPERIMENT_IMPLEMENTATION_PROMPT,
     IMPLEMENT_METRIC_PROMPT,
@@ -13,46 +8,13 @@ from src.prompts import (
 from src.utils import get_file_content, write_python_code_to_file
 
 
-def print_stream_event(event: dict) -> None:
-    """
-    Pretty-print LangGraph/Deep Agent stream events.
-
-    Works with stream_mode='updates', where each event is usually shaped like:
-        {"node_name": {"messages": [...]}}
-    """
-
-    for node_name, node_update in event.items():
-        if not isinstance(node_update, dict):
-            continue
-
-        messages = node_update.get("messages", [])
-
-        for message in messages:
-            if isinstance(message, AIMessage):
-                if message.tool_calls:
-                    print(f"\n[{node_name}] tool calls:")
-                    for call in message.tool_calls:
-                        print(f"  - {call['name']}({call.get('args', {})})")
-
-                if message.content:
-                    print(f"\n[{node_name}] assistant:")
-                    print(message.content)
-
-            elif isinstance(message, ToolMessage):
-                print(f"\n[{node_name}] tool result: {message.name}")
-                content = str(message.content)
-
-                # Avoid dumping huge file contents.
-                if len(content) > 2000:
-                    content = content[:2000] + "\n... [truncated]"
-
-                print(content)
-
 # TODO move into metric_graph
 def implement_metric(slug: str, metric: str):
+    system_prompt, instruction = IMPLEMENT_METRIC_PROMPT(metric=metric)
 
-    code_result = call_dcode(
-        prompt=IMPLEMENT_METRIC_PROMPT(metric=metric),
+    code_result = call_llm(
+        prompt=instruction,
+        system_prompt=system_prompt,
         context="",
     )
     content = getattr(code_result, "content", code_result)
@@ -71,9 +33,12 @@ def implement_metric(slug: str, metric: str):
 
 
 def ask_for_code(slug: str, context: str, stream: bool = False):
+    system_prompt, instruction = EXPERIMENT_IMPLEMENTATION_PROMPT(slug=slug)
     return call_dcode(
-        prompt=EXPERIMENT_IMPLEMENTATION_PROMPT(slug=slug),
+        prompt=instruction,
+        system_prompt=system_prompt,
         context=context,
+        stream=stream,
     )
 
 
@@ -81,16 +46,23 @@ def repair_code(
     slug: str, file_path: str, traceback: str, context: str = "", stream: bool = False
 ):
     current_code = get_file_content(path=file_path)
+    system_prompt, instruction = REPAIR_CODE_PROMPT(
+        file_path=file_path, current_code=current_code, traceback=traceback
+    )
 
     return call_dcode(
-        prompt=REPAIR_CODE_PROMPT(
-            file_path=file_path, current_code=current_code, traceback=traceback
-        ),
+        prompt=instruction,
+        system_prompt=system_prompt,
         context=context,
+        stream=stream,
     )
 
 
 def implement_preprocessing(slug: str, context: str, stream: bool = False):
+    system_prompt, instruction = IMPLEMENT_PREPROCESSING_CODE
     return call_dcode(
-        prompt=IMPLEMENT_PREPROCESSING_CODE, context=context
+        prompt=instruction,
+        system_prompt=system_prompt,
+        context=context,
+        stream=stream,
     )

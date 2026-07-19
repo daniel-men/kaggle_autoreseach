@@ -74,11 +74,6 @@ def initialize_workspace(challenge_url: str):
     download_competition(slug=slug, data_dir=workspace / "data")
     write_challenge_docs(workspace=workspace, challenge=challenge_url)
 
-
-
-    
-
-
 def main(challenge_url: str):
     initialize_workspace(challenge_url=challenge_url)
     slug = slug_from_url(challenge_url)

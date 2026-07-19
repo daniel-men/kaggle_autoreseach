@@ -5,6 +5,7 @@ from typing import Optional, TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from src.schemas.CodeResultModel import CodeResultModel
 from src.runner import run_function
 from src.schemas.DataPreprocessingPlan import DataPreprocessingPlan
 from src.llm_calls import implement_preprocessing
@@ -33,7 +34,10 @@ def write_preprocessing_code(state: PreprocessingState) -> dict:
 
 def implement_preprocessing_node(state: PreprocessingState) -> dict:
     model_output = implement_preprocessing(slug=state["slug"], context=state["preprocessing_plan"].model_dump_json())
-    code_result = model_output.content
+    if isinstance(model_output, CodeResultModel):
+        code_result = model_output.python_code
+    else:
+        code_result = model_output.content
     return {"code_result": code_result, "attempt": 0}
 
 def run_preprocessing_node(state: PreprocessingState) -> dict:
@@ -68,6 +72,9 @@ def repair_code(state: PreprocessingState) -> dict:
     solution_path = f"{os.getcwd()}/runs/{state['slug']}/solution/preprocessing.py"
     context = state["preprocessing_plan"].model_dump_json()
     code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"], context=context)
+    if isinstance(code_result, CodeResultModel):
+        code_result = code_result.python_code
+    
     print("Code repair done.")
     return {"code_result": code_result, "attempt": attempt}
 

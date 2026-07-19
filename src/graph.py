@@ -11,6 +11,7 @@ from src.llm_calls import ask_for_code
 from src.llm_calls import repair_code as _repair_code
 from src.metrics_graph import load_metric_module
 from src.runner import run_function
+from src.schemas.CodeResultModel import CodeResultModel
 from src.schemas.ExperimentPlan import ExperimentPlan
 from src.schemas.MLResearchPlan import MLResearchPlan
 from src.utils import write_python_code_to_file
@@ -66,6 +67,9 @@ def repair_code(state: ResearchIterationState) -> dict:
     context = state["experiment_plan"].model_dump_json()
 
     code_result = _repair_code(slug=state["slug"], file_path=solution_path, traceback=state["feedback"], context=context)
+    if isinstance(code_result, CodeResultModel):
+        code_result = code_result.python_code
+    
     print("Code repair done.")
     return {"code_result": code_result, "attempt": attempt} 
 
@@ -73,6 +77,8 @@ def repair_code(state: ResearchIterationState) -> dict:
 def generate_code(state: ResearchIterationState) -> dict:
     context = state["experiment_plan"].model_dump_json()
     code_result = ask_for_code(slug=state["slug"], context=context, stream=False)
+    if isinstance(code_result, CodeResultModel):
+        code_result = code_result.python_code
     return {"code_result": code_result, "attempt": 0}
     
 

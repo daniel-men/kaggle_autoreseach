@@ -9,6 +9,7 @@ from langgraph.graph import StateGraph, END
 
 from src.llm_calls import repair_code as _repair_code
 from src.llms import get_llm
+from src.schemas.CodeResultModel import CodeResultModel
 from src.schemas.MLResearchPlan import MLResearchPlan
 from src.utils import write_python_code_to_file
 from src.llm_calls import implement_metric as _implement_metric
@@ -67,6 +68,10 @@ def implement_metric(state: MetricImplementationState) -> dict:
         slug=state["slug"],
         metric=state["normalized_metric_names"][state["metric_index"]],
     )
+
+    if isinstance(code_result, CodeResultModel):
+        code_result = code_result.python_code
+
     content = getattr(code_result, "content", code_result)
     if isinstance(content, dict):
         content = content.get("content") or content.get("text") or str(content)
