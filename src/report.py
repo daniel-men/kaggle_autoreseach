@@ -21,8 +21,6 @@ def write_markdown_report(
     report_path = Path(output_path) if output_path else _default_report_path(slug)
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    
-
     preprocessing_code = get_file_content(
         Path.cwd() / "runs" / slug / "solution" / "preprocessing.py"
     )
@@ -47,12 +45,8 @@ def write_markdown_report(
     return report_path
 
 
-
-
 def _default_report_path(slug: str) -> Path:
     return Path.cwd() / "runs" / slug / "reports" / "research_report.md"
-
-
 
 
 def _to_data(value: Any) -> Any:

@@ -56,7 +56,6 @@ Implementation:
   machine learning pipeline.
 
 Output:
-- Only change or create the file solution.py in the solution directory.
 - Do not import or compute any metrics on your own.
 - Implement a predict() function with no arguments that runs the full pipeline:
     load data, split into train/test, train the model, and generate test-set predictions.
@@ -121,6 +120,7 @@ IMPLEMENT_PREPROCESSING_CODE: tuple[str, str] = (
 - Do not perform feature engineering beyond cleaning, imputation, and encoding.
 - Implement a preprocess() function that performs these steps. It takes as only input the path to csv and returns the preprocessed dataframe.
 - Implement the actual code and not a scaffold.
+- Do not implement code outside of preprocess.
 - Briefly report which columns were dropped, imputed, or encoded, and confirm
     that data/preprocessed_data.csv was written successfully.
 

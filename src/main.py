@@ -93,6 +93,6 @@ def main(challenge_url: str):
     write_markdown_report(state=experiment_results, preprocessing_plan=preprocessing_plan)
 
 if __name__ == "__main__":
-    #main("https://www.kaggle.com/competitions/titanic")
-    main("https://www.kaggle.com/competitions/home-data-for-ml-course")
+    main("https://www.kaggle.com/competitions/titanic")
+    #main("https://www.kaggle.com/competitions/home-data-for-ml-course")
     #main("https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction")

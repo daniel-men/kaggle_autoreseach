@@ -34,7 +34,7 @@ def implement_metric(slug: str, metric: str):
 
 def ask_for_code(slug: str, context: str, stream: bool = False):
     system_prompt, instruction = EXPERIMENT_IMPLEMENTATION_PROMPT(slug=slug)
-    return call_dcode(
+    return call_llm(
         prompt=instruction,
         system_prompt=system_prompt,
         context=context,
@@ -50,7 +50,7 @@ def repair_code(
         file_path=file_path, current_code=current_code, traceback=traceback
     )
 
-    return call_dcode(
+    return call_llm(
         prompt=instruction,
         system_prompt=system_prompt,
         context=context,
@@ -60,7 +60,7 @@ def repair_code(
 
 def implement_preprocessing(slug: str, context: str, stream: bool = False):
     system_prompt, instruction = IMPLEMENT_PREPROCESSING_CODE
-    return call_dcode(
+    return call_llm(
         prompt=instruction,
         system_prompt=system_prompt,
         context=context,

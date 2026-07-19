@@ -94,12 +94,13 @@ def call_llm(prompt: str, context: str, system_prompt: Optional[str] = None, pro
 
 
 
-def call_dcode(prompt: str, context: str, system_prompt: Optional[str] = None, provider: str = "openai", model: str = "qwen3-coder:30b", temperature: float = 0.0, stream: bool = False):
+def call_dcode(prompt: str, context: str, system_prompt: Optional[str] = None, cwd: Optional[str] = None, provider: str = "openai", model: str = "qwen3-coder:30b", temperature: float = 0.0, stream: bool = False):
     llm = get_llm(provider=provider, model=model, temperature=temperature)
     agent, backend = create_cli_agent(
         model=llm,
         assistant_id="dcode",
         system_prompt=system_prompt,
+        cwd=cwd,
         interactive=False,
         # Keep this False for safety.
         # The agent will ask for approval before risky actions depending on setup.

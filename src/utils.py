@@ -53,6 +53,13 @@ def write_python_code_to_file(content: str, filename: str, slug: str, append: bo
 
     code_blocks = re.findall(r"```(?:python)?\s*(.*?)```", content, re.DOTALL | re.IGNORECASE)
     if code_blocks:
+        # A response can contain multiple fenced blocks that resolve to the
+        # same target (e.g. the real implementation plus a short usage
+        # example). Since a usage example is reliably shorter than the
+        # actual implementation, keep the longest block per target rather
+        # than whichever happens to appear first or last.
+        blocks_by_target: dict[Path, str] = {}
+        target_order: list[Path] = []
         for block in code_blocks:
             block_text = block.strip()
             if not block_text:
@@ -66,6 +73,14 @@ def write_python_code_to_file(content: str, filename: str, slug: str, append: bo
 
             block_text = re.sub(r"(?im)^\s*#\s*FILE:\s*.+\s*$", "", block_text).strip()
             target = solution_dir / relative_path
+
+            if target not in blocks_by_target:
+                target_order.append(target)
+            if target not in blocks_by_target or len(block_text) > len(blocks_by_target[target]):
+                blocks_by_target[target] = block_text
+
+        for target in target_order:
+            block_text = blocks_by_target[target]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.touch(exist_ok=True)
 
