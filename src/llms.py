@@ -99,13 +99,13 @@ def call_dcode(prompt: str, context: str, system_prompt: Optional[str] = None, c
     agent, backend = create_cli_agent(
         model=llm,
         assistant_id="dcode",
-        system_prompt=system_prompt,
+        system_prompt=None,
         cwd=cwd,
         interactive=False,
         # Keep this False for safety.
         # The agent will ask for approval before risky actions depending on setup.
         auto_approve=True,
-        enable_shell=True,
+        enable_shell=False,
         enable_memory=True,
         enable_skills=True,
         # Optional but recommended.
@@ -115,7 +115,6 @@ def call_dcode(prompt: str, context: str, system_prompt: Optional[str] = None, c
             "pytest",
             "pip",
         ],
-        tools=[PythonREPLTool],
         response_format=CodeResultModel
 
     )

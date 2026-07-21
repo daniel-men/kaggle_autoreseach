@@ -5,7 +5,7 @@ from src.prompts import (
     IMPLEMENT_PREPROCESSING_CODE,
     REPAIR_CODE_PROMPT,
 )
-from src.utils import get_file_content, write_python_code_to_file
+from src.utils import get_file_content, write_python_code_to_file, _workspace_for_challenge
 
 
 # TODO move into metric_graph
@@ -34,11 +34,13 @@ def implement_metric(slug: str, metric: str):
 
 def ask_for_code(slug: str, context: str, stream: bool = False):
     system_prompt, instruction = EXPERIMENT_IMPLEMENTATION_PROMPT(slug=slug)
-    return call_llm(
-        prompt=instruction,
-        system_prompt=system_prompt,
+    instruction = instruction + "\n" + "Write to solution/solution.py"
+    return call_dcode(
+        prompt=system_prompt + "\n" + instruction,
+        system_prompt=None,
         context=context,
         stream=stream,
+        cwd=_workspace_for_challenge(slug) / "solution"
     )
 
 
@@ -60,9 +62,11 @@ def repair_code(
 
 def implement_preprocessing(slug: str, context: str, stream: bool = False):
     system_prompt, instruction = IMPLEMENT_PREPROCESSING_CODE
-    return call_llm(
-        prompt=instruction,
-        system_prompt=system_prompt,
+    instruction = instruction + "\n" + "Write to solution/preprocessing.py"
+    return call_dcode(
+        prompt=system_prompt + "\n" + instruction,
+        system_prompt=None,
         context=context,
         stream=stream,
+        cwd=_workspace_for_challenge(slug) / "solution"
     )
