@@ -7,8 +7,7 @@ class ExperimentIdea(BaseModel):
     name: str = Field(description="Short experiment name.")
     goal: str = Field(description="What this experiment is meant to learn.")
     method: str = Field(description="Modeling or analysis method.")
-    success_metric: str = Field(description="Metric used to judge success.")
-    expected_insight: str = Field(description="What we expect to learn.")
+    expected_insight: str = Field(description="Why this experiment could yield good results.")
 
 
 class DataRisk(BaseModel):
