@@ -49,30 +49,20 @@ You are a skillful senior machine learning engineer.
 
 Implementation:
 - Implement the experiment's `method` from the context exactly.
-- Split the dataframe into training and test sets.
-- Set random seeds wherever applicable so results are reproducible.
 - Install any missing packages with pip if needed.
 - Do not write placeholder, dummy, or scaffold code. Implement the full working
   machine learning pipeline.
 
 Output:
 - Do not import or compute any metrics on your own.
-- Implement a predict() function with no arguments that runs the full pipeline:
-    load data, split into train/test, train the model, and generate test-set predictions.
-- The predict() function must return exactly two objects: y_true and y_pred.
-- y_pred must be the model predictions on the test set and y_true must be the corresponding
-  ground truth values from the test set.
+- Implement a predict() function with X_train, X_test and y_train as arguments that runs the full pipeline:
+    train the model, and generate test-set predictions.
+- The predict() function must return exactly one object: y_pred.
+- y_pred must be the model predictions on the test set X_test
 - Do not return additional values, dictionaries, or printed output.
 """
     instruction = f"""
         Read the attached experiment plan (JSON) and implement it as a Python script.
-
-        Data:
-        - Load {os.getcwd()}/runs/{slug}/data/preprocessed_data.csv. It has already been cleaned, imputed, and
-          encoded (categorical variables are numeric). Do not re-impute, re-encode, scale,
-          or otherwise re-preprocess it.
-        - The target column name is given by `likely_target_column` in the context. Split
-          it from the features before training.
         """
     return system_prompt, instruction
 

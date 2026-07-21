@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Callable, Optional, TypedDict
 
 from langgraph.graph import StateGraph, END
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from src.llm_calls import ask_for_code
 from src.llm_calls import repair_code as _repair_code
@@ -115,12 +117,23 @@ def get_metrics(state: ResearchIterationState) -> dict[str, Callable]:
 
 def run_predict_node(state: ResearchIterationState) -> dict:
     print("--- Running predict ---")
-    predict_result = run_function(slug=state["slug"], filename="solution.py", fn_name="predict", args=None)
+    workspace = Path("runs") / state["slug"]
+    preprocessed_csv_path = workspace / "data" / "preprocessed_data.csv"
+    target_column = state["research_plan"].likely_target_column
+    preprocessed_df = pd.read_csv(preprocessed_csv_path)
+    X = preprocessed_df.drop(columns=[target_column])
+    y = preprocessed_df[target_column]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+
+    predict_result = run_function(slug=state["slug"], filename="solution.py", fn_name="predict", args=(X_train, X_test, y_train))
     feedback = None if predict_result["success"] else predict_result["traceback"]
     if predict_result["success"]:
         
         try:
-            y_true, y_pred = predict_result["result"]
+            y_pred = predict_result["result"]
         except Exception as e:
             predict_result["success"] = False
             feedback = str(e)
@@ -132,7 +145,7 @@ def run_predict_node(state: ResearchIterationState) -> dict:
         for metric_name, metric in metrics.items():
             
             try:
-                result = metric(y_true, y_pred)
+                result = metric(y_test, y_pred)
             except Exception as e:
                 print(e)
                 result = None
